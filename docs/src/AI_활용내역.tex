@@ -1,0 +1,56 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,left=22mm,right=22mm,top=22mm,bottom=19mm,footskip=9mm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Noto Sans CJK KR}[BoldFont={Noto Sans CJK KR Bold}]
+\usepackage{xcolor,colortbl,array,tabularx,booktabs}
+\usepackage{fancyhdr,lastpage}
+\definecolor{head}{gray}{0.929}
+\definecolor{note}{HTML}{5D5D5D}
+\pagestyle{fancy}\fancyhf{}\renewcommand{\headrulewidth}{0pt}
+\cfoot{\vspace{-4pt}\rule{\textwidth}{0.4pt}\\[3pt]\fontsize{8}{10}\selectfont \thepage\ / \pageref{LastPage}}
+\newfontfamily\hyfont{Liberation Sans}
+\newcommand{\hy}{{\hyfont -}}
+\setlength{\parindent}{0pt}
+\linespread{1.32}
+\newcommand{\sect}[1]{\par\vspace{8pt}{\fontsize{12.6}{15}\selectfont\bfseries #1\par}\nointerlineskip\vspace{4pt}\noindent{\color[gray]{0.2}\rule{\textwidth}{0.4pt}}\par\nointerlineskip\vspace{4pt}}
+\XeTeXlinebreaklocale "ko"
+\XeTeXlinebreakskip=0pt plus 0.5pt
+\begin{document}
+\fontsize{9.5}{12.5}\selectfont
+\rule{\textwidth}{0.4pt}\par\vspace{1pt}
+{\fontsize{8.3}{10}\selectfont 2026 DATA AI 분석 경진대회 \quad|\quad KOWAS\hy{}EPI}\par\vspace{2pt}
+{\fontsize{17.4}{21}\selectfont\bfseries 생성형 AI 활용 및 주요 검토 결과}\par\vspace{1pt}
+{\fontsize{8.7}{11}\selectfont 하수 감시 데이터 기반 감염병 조기예측 모델 \hfill 작성일 2026.11.06 \,·\, 수정 2026.11.19}\par
+
+\sect{1. AI 활용 범위}
+ChatGPT와 Codex는 초기 방법론 검토, 아이디어 정리 및 기초 코드 초안 작성에 주로 활용하였습니다. 농도 급변과 결측, 지역별 차이를 다루기 위해 Huber 회귀, LSTM과 GRU, FFT, GNN 등의 적용 방안을 검토했습니다. 전처리와 특징 생성, 초기 모델과 비교 실험의 기본 코드도 이 과정에서 작성했습니다. 후속 단계에서는 일부 코드 수정과 결과 검토를 보조하는 용도로 활용하였습니다.
+
+\vspace{3pt}
+Claude는 대회 규정 정리와 점검표 작성, 기여도·취약 창·강수 비교 실험의 실행과 결과 정리, 과적합·누수 점검과 학습 이력 안전장치 구현, 보조 스크립트·노트북·시연 영상 제작, README와 문제해결 설명서 작성에 활용하였습니다.
+
+\vspace{3pt}
+실험 방향과 우선순위, 모델 채택 여부는 참가팀이 판단하였습니다. 같은 평가 조건에서 후보를 비교하고, 성능이 낮거나 기간별 차이가 큰 방법은 제외하거나 적용을 보류했습니다. AI가 낸 수치는 공식 평가기 재실행과 결과 파일 대조로 확인했고, 예측 시점 이후 정보가 학습에 들어가는지, 대회 규정에 맞는지도 확인했습니다.
+
+\sect{2. 주요 대안과 검토 결과}
+{\fontsize{8.8}{11.5}\selectfont
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{36mm}>{\raggedright\arraybackslash}X}
+\rowcolor{head}\textbf{검토 항목} & \textbf{검토 내용과 판단}\\ \hline
+강수 기반 유량 추정 & 시화 지역의 강수와 유량을 별도로 분석하였습니다. 10mm 이상 강수일 70일 중 59일에서 당일과 다음 날 평균 유량이 증가했습니다. 다만 강수를 추가한 유량 예측에서는 개선이 확인되지 않았습니다. KOWAS 농도 자료와 처리장 및 관측 시점을 정확히 맞추기 어려워, 추정 유량은 최종 모델에서 제외했습니다.\\ \hline
+FFT, Wavelet, GNN & 농도 급변과 지역 간 영향을 반영하기 위해 검토했습니다. FFT를 이용한 2주 급변 예측의 AUC는 0.544로 기존 특징 모델의 0.559보다 낮았습니다. Wavelet과 GNN도 최종 예측 성능에서 일관된 개선을 확인하지 못해 적용하지 않았습니다.\\ \hline
+지역별 학습과 잔차 보정 & 지역별 모델을 별도로 학습하고 공통 모델과 결합하는 방식을 비교했습니다. 저장된 예측 결과를 이용한 연구용 재채점에서는 0.3801까지 상승했지만, 제출 코드 안에서 과거 예측을 다시 생성해 학습한 결과는 개선이 안정적이지 않았습니다. 최종 반영은 보류했습니다.\\ \hline
+결측 시 경보 변경 & 농도 관측이 없는 주의 경보를 0으로 조정하는 방법을 시험했습니다. 오경보는 20건 줄었지만 실제 급증을 18건 더 놓쳤고, 점수도 0.37894에서 0.37749로 하락했습니다. 해당 규칙은 채택하지 않았습니다.\\ \hline
+\end{tabularx}}
+
+\sect{3. 최종 선택과 검증}
+최종 모델에는 서로 다른 학습 기간의 Huber 회귀와 장기 HGB 및 Huber 모델을 결합했습니다. LSTM과 GRU의 예측 차이는 경보 판단에 활용했고, 결측 여부와 처리장 구성 변화는 별도 특징 및 보정 단계로 반영했습니다. 처리장 구성 보정을 제거하면 점수가 약 0.0052 하락하는 등 일부 모듈은 제거 실험에서 기여를 확인했습니다.
+
+\vspace{3pt}
+대회 제공 평가 스크립트로 10개 평가 창을 재실행한 자가평가 점수는 0.378943입니다. 기준 모델 점수는 0.2212였으며, 평균 sMAPE는 52.61\%, Macro\hy{}F1은 0.6594였습니다. 예측 시점 이후의 관측값과 아직 확정되지 않은 정답이 학습에 포함되지 않도록 점검했고, 반복 실행 결과가 바이트 단위로 같음을 확인했습니다.
+
+\vspace{3pt}
+다만 공개된 평가 창을 여러 차례 확인하며 모델을 선택했으므로 선택 편향의 가능성이 있습니다. 특히 연초 결측이 많은 구간에서는 예측 성능이 낮았습니다. 이 부분은 추가 자료와 별도 기간의 평가가 필요합니다.
+
+\vspace{4pt}
+{\fontsize{7.5}{9.5}\selectfont\color{note} ※ 활용 도구: OpenAI ChatGPT, OpenAI Codex, Anthropic Claude(모델 버전 미기록, 단계별 내용은 README.md 15절, 예측 모델은 생성형 AI를 호출하지 않음). 유량과 지역별 후처리 실험은 공식 제출형 백테스트와 구분하였습니다.}
+\end{document}
