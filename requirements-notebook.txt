@@ -1,0 +1,4 @@
+# notebooks/KOWAS-EPI_학습평가.ipynb 를 실행할 때만 추가로 필요하다 (모델 실행에는 불필요)
+matplotlib==3.11.2
+notebook>=7
+ipykernel>=6
