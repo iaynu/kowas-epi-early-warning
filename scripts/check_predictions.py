@@ -9,7 +9,7 @@ import argparse, csv, math, sys
 def load(path):
     with open(path, encoding="utf-8", newline="") as f:
         rd = csv.reader(f)
-        header = next(rd)
+        header = next(rd, [])
         rows = list(rd)
     return header, rows
 
